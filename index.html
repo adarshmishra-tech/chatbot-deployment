@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EliteShop - Premium E-Commerce Luxury Goods</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/onnxjs@0.1.7/dist/onnx.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(90deg, #1e3a8a, #1e40af);
+            padding: 1rem 3rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .navbar .logo {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #facc15;
+            letter-spacing: 1px;
+        }
+        .navbar a {
+            color: white;
+            margin: 0 1.5rem;
+            font-weight: 600;
+            transition: color 0.3s ease, transform 0.3s ease;
+            text-decoration: none;
+        }
+        .navbar a:hover {
+            color: #facc15;
+            transform: scale(1.05);
+        }
+        .cart-icon {
+            position: relative;
+            color: white;
+            font-size: 1.5rem;
+        }
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #facc15;
+            color: #1e3a8a;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Hero */
+        .hero {
+            background-image: url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            position: relative;
+            margin-top: 80px; /* Account for fixed navbar */
+        }
+        .hero-overlay {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4rem;
+            border-radius: 1.5rem;
+            backdrop-filter: blur(10px);
+            max-width: 800px;
+        }
+        .hero h1 {
+            font-size: 4.5rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 2.5rem;
+            font-weight: 300;
+        }
+        /* Shop Section */
+        .shop {
+            padding: 5rem 2rem;
+            background: linear-gradient(180deg, #ffffff, #f8fafc);
+        }
+        .shop h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #1e3a8a;
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        .product-card {
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+            position: relative;
+        }
+        .product-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25);
+        }
+        .product-card img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+        .product-info {
+            padding: 2rem;
+            text-align: center;
+        }
+        .product-info h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 0.5rem;
+        }
+        .product-price {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #facc15;
+            margin-bottom: 1rem;
+        }
+        .add-to-cart {
+            background: linear-gradient(45deg, #1e3a8a, #1e40af);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            border: none;
+            font-weight: 600;
+            transition: background 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+        }
+        .add-to-cart:hover {
+            background: linear-gradient(45deg, #facc15, #eab308);
+            transform: scale(1.05);
+        }
+        /* Categories Section */
+        .categories {
+            padding: 5rem 2rem;
+            background: #f8fafc;
+        }
+        .categories h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #1e3a8a;
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        .category-card {
+            transition: transform 0.4s ease;
+            text-align: center;
+            padding: 2rem;
+        }
+        .category-card:hover {
+            transform: scale(1.05);
+        }
+        .category-card i {
+            color: #facc15;
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        /* Cart Modal */
+        .cart-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .cart-modal.open {
+            display: flex;
+        }
+        .cart-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        /* Chatbox */
+        .chat-button {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #1e3a8a, #1e40af);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            z-index: 1000;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            color: white;
+            font-size: 2rem;
+        }
+        .chat-button:hover {
+            transform: scale(1.15);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+        }
+        .chat-container {
+            position: fixed;
+            bottom: 120px;
+            right: 40px;
+            width: 400px;
+            max-height: 600px;
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+        }
+        .chat-container.open {
+            display: flex;
+        }
+        .chat-header {
+            background: linear-gradient(45deg, #1e3a8a, #1e40af);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+        .chat-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .chat-header-left span {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        .chat-header-left img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #facc15;
+        }
+        .chat-header button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .chat-header button:hover {
+            color: #facc15;
+        }
+        .chat-body {
+            flex: 1;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background: #f9fafb;
+        }
+        .chat-input {
+            display: flex;
+            padding: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.75rem;
+            margin-right: 0.75rem;
+            outline: none;
+            font-size: 1rem;
+        }
+        .chat-input button {
+            background: #1e3a8a;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            border: none;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+        .chat-input button:hover {
+            background: #facc15;
+            color: #1e3a8a;
+        }
+        .chat-message {
+            margin: 0.75rem 0;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: flex-start;
+        }
+        .chat-message.user {
+            background: #e5e7eb;
+            justify-content: flex-end;
+        }
+        .chat-message.user span {
+            order: 2;
+        }
+        .chat-message.bot {
+            background: #dbeafe;
+        }
+        .chat-message img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        /* Footer */
+        .footer {
+            background: linear-gradient(90deg, #1e3a8a, #1e40af);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        .footer p {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #facc15, #eab308);
+            color: #1e3a8a;
+            padding: 1.25rem 3rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4);
+        }
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .hero h1 {
+                font-size: 3rem;
+            }
+            .hero p {
+                font-size: 1.2rem;
+            }
+            .chat-container {
+                width: 90%;
+                right: 5%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar flex items-center justify-between">
+        <div class="logo">EliteShop</div>
+        <div class="flex items-center">
+            <a href="#home">Home</a>
+            <a href="#shop">Shop</a>
+            <a href="#categories">Categories</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
+            <div class="cart-icon ml-4" onclick="toggleCart()">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-count" id="cart-count">0</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-overlay">
+            <h1>EliteShop</h1>
+            <p>Discover Premium Luxury Goods for the Discerning Shopper</p>
+            <a href="#shop" class="btn-primary">Shop Now</a>
+        </div>
+    </section>
+
+    <!-- Featured Products Section -->
+    <section id="shop" class="shop">
+        <h2>Featured Products</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-7xl mx-auto">
+            <div class="product-card">
+                <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80" alt="Luxury Watch">
+                <div class="product-info">
+                    <h3>Elite Luxury Watch</h3>
+                    <div class="product-price">$1,299</div>
+                    <button class="add-to-cart" onclick="addToCart('Elite Luxury Watch', 1299)">Add to Cart</button>
+                </div>
+            </div>
+            <div class="product-card">
+                <img src="https://images.unsplash.com/photo-1587563871167-1ee9c731a7bd?auto=format&fit=crop&w=800&q=80" alt="Designer Handbag">
+                <div class="product-info">
+                    <h3>Designer Handbag</h3>
+                    <div class="product-price">$899</div>
+                    <button class="add-to-cart" onclick="addToCart('Designer Handbag', 899)">Add to Cart</button>
+                </div>
+            </div>
+            <div class="product-card">
+                <img src="https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&w=800&q=80" alt="Premium Sunglasses">
+                <div class="product-info">
+                    <h3>Premium Sunglasses</h3>
+                    <div class="product-price">$499</div>
+                    <button class="add-to-cart" onclick="addToCart('Premium Sunglasses', 499)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section id="categories" class="categories">
+        <h2>Shop by Category</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-7xl mx-auto">
+            <div class="category-card">
+                <i class="fas fa-watch"></i>
+                <h3 class="text-2xl font-semibold text-gray-800 mt-4">Watches</h3>
+                <p class="text-gray-600">Timeless elegance</p>
+            </div>
+            <div class="category-card">
+                <i class="fas fa-handbag"></i>
+                <h3 class="text-2xl font-semibold text-gray-800 mt-4">Handbags</h3>
+                <p class="text-gray-600">Luxury accessories</p>
+            </div>
+            <div class="category-card">
+                <i class="fas fa-sunglasses"></i>
+                <h3 class="text-2xl font-semibold text-gray-800 mt-4">Sunglasses</h3>
+                <p class="text-gray-600">Style and protection</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 px-4 max-w-7xl mx-auto bg-gray-100">
+        <h2 class="text-3xl font-bold text-center mb-10 text-gray-800">About EliteShop</h2>
+        <p class="text-lg text-gray-600 text-center max-w-4xl mx-auto">EliteShop is your premier destination for luxury e-commerce, offering a curated selection of high-end products with unparalleled quality and service. Experience shopping redefined.</p>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 px-4 max-w-7xl mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-10 text-gray-800">Connect With Us</h2>
+        <div class="text-center">
+            <p class="text-lg text-gray-600 mb-6">Ready to shop luxury? Let's find the perfect item for you.</p>
+            <a href="#" class="btn-primary">Get in Touch</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Created by Adarsh &copy; 2025 EliteShop. All rights reserved.</p>
+    </footer>
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="cart-modal">
+        <div class="cart-content">
+            <h2 class="text-2xl font-bold mb-4">Shopping Cart</h2>
+            <div id="cart-items"></div>
+            <p id="cart-total" class="text-xl font-bold mt-4">Total: $0.00</p>
+            <button onclick="toggleCart()" class="btn-primary mt-4">Close</button>
+        </div>
+    </div>
+
+    <!-- Chat Button -->
+    <div class="chat-button" onclick="toggleChat()">
+        <i class="fas fa-comments"></i>
+    </div>
+
+    <!-- Chatbox -->
+    <div id="chatbox" class="chat-container">
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <img src="https://images.pexels.com/photos/1845534/pexels-photo-1845534.jpeg?auto=compress&cs=tinysrgb&w=100" alt="AI Assistant">
+                <span>May I help you?</span>
+            </div>
+            <button onclick="toggleChat()">Close</button>
+        </div>
+        <div class="chat-body" id="chat-body"></div>
+        <div class="chat-input">
+            <input type="text" id="chat-input" placeholder="Ask about products, shipping..." />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        // Shopping Cart Functionality
+        let cart = [];
+
+        function addToCart(name, price) {
+            cart.push({ name, price });
+            document.getElementById('cart-count').textContent = cart.length;
+            alert(`${name} added to cart!`);
+        }
+
+        function toggleCart() {
+            const modal = document.getElementById('cart-modal');
+            modal.classList.toggle('open');
+            const cartItems = document.getElementById('cart-items');
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            document.getElementById('cart-total').textContent = `Total: $${total.toFixed(2)}`;
+            cartItems.innerHTML = cart.map(item => `<p>${item.name} - $${item.price}</p>`).join('');
+        }
+
+        // Chat Functionality
+        const socket = io('https://your-render-app.onrender.com'); // Replace with your Render app URL after deployment
+
+        // Mock responses for e-commerce
+        const mockResponses = {
+            "hi": "Hello! Welcome to EliteShop. How can I assist with your shopping today?",
+            "products": "We offer premium luxury watches, handbags, and sunglasses. Browse our featured section!",
+            "shipping": "We provide free worldwide shipping on orders over $500. Delivery in 3-5 business days.",
+            "payment": "Secure payments via credit card, PayPal, and more. Your data is protected.",
+            "default": "I'm here to help with your shopping needs. Ask about products, shipping, or payments!"
+        };
+
+        async function getAIResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            for (const [key, response] of Object.entries(mockResponses)) {
+                if (lowerMessage.includes(key)) return response;
+            }
+            return mockResponses.default;
+        }
+
+        function ChatMessage({ message, isUser }) {
+            return (
+                React.createElement('div', { className: `chat-message ${isUser ? 'user' : 'bot'}` },
+                    !isUser && React.createElement('img', { src: 'https://images.pexels.com/photos/1845534/pexels-photo-1845534.jpeg?auto=compress&cs=tinysrgb&w=100', alt: 'AI Avatar' }),
+                    React.createElement('span', null, message),
+                    isUser && React.createElement('img', { src: 'https://images.pexels.com/photos/1845534/pexels-photo-1845534.jpeg?auto=compress&cs=tinysrgb&w=100', alt: 'User Avatar', style: { marginLeft: '0.75rem', order: 1 } })
+                )
+            );
+        }
+
+        function ChatBox() {
+            const [messages, setMessages] = React.useState([{ text: 'How can I help with your shopping?', isUser: false }]);
+            const [input, setInput] = React.useState('');
+
+            React.useEffect(() => {
+                socket.on('message', (msg) => {
+                    setMessages((prev) => [...prev, { text: msg, isUser: false }]);
+                });
+                return () => socket.off('message');
+            }, []);
+
+            window.sendMessage = async () => {
+                if (input.trim()) {
+                    setMessages((prev) => [...prev, { text: input, isUser: true }]);
+                    socket.emit('message', input);
+                    const aiResponse = await getAIResponse(input);
+                    setMessages((prev) => [...prev, { text: aiResponse, isUser: false }]);
+                    setInput('');
+                    const chatBody = document.getElementById('chat-body');
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                }
+            };
+
+            return (
+                React.createElement('div', null,
+                    React.createElement('div', { id: 'chat-body' },
+                        messages.map((msg, index) =>
+                            React.createElement(ChatMessage, { key: index, message: msg.text, isUser: msg.isUser })
+                        )
+                    ),
+                    React.createElement('div', { className: 'chat-input' },
+                        React.createElement('input', {
+                            type: 'text',
+                            value: input,
+                            onChange: (e) => setInput(e.target.value),
+                            onKeyPress: (e) => e.key === 'Enter' && window.sendMessage(),
+                            placeholder: 'Ask about products, shipping...'
+                        }),
+                        React.createElement('button', { onClick: window.sendMessage }, 'Send')
+                    )
+                )
+            );
+        }
+
+        // Render React component
+        ReactDOM.render(React.createElement(ChatBox), document.getElementById('chatbox'));
+
+        // Toggle chatbox visibility
+        window.toggleChat = () => {
+            const chatbox = document.getElementById('chatbox');
+            chatbox.classList.toggle('open');
+        };
+
+        // Initial cart count
+        document.getElementById('cart-count').textContent = cart.length;
+    </script>
+</body>
+</html>
