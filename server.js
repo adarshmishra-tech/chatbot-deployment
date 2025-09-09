@@ -2,13 +2,14 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
-const path = require('path'); // Added for proper file path handling
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: '*', // Adjust for production (e.g., your Render URL)
+        origin: '*',
         methods: ['GET', 'POST'],
         credentials: true
     }
@@ -17,7 +18,18 @@ const io = new Server(server, {
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public'))); // Serve static files from 'public' folder
+
+// Serve index.html from root directory
+app.get('/', (req, res) => {
+    const filePath = path.join(__dirname, 'index.html');
+    fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+            res.status(500).send('Error loading page');
+            return;
+        }
+        res.send(data);
+    });
+});
 
 // Mock product database
 const products = [
@@ -35,11 +47,6 @@ const mockAIResponses = {
     cart: 'I can help with your cart! Want to check your items or proceed to checkout?',
     default: 'I’m here to assist with your shopping needs. Ask about products, shipping, or payments!'
 };
-
-// Serve the main website
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html')); // Serve index.html
-});
 
 // API endpoint for products
 app.get('/api/products', (req, res) => {
@@ -84,7 +91,7 @@ app.use((err, req, res, next) => {
     res.status(500).send('Something went wrong!');
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Access the website at http://localhost:${PORT} or your Render URL`);
